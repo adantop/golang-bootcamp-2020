@@ -3,16 +3,29 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 
+	"github.com/adantop/golang-bootcamp-2020/domain"
 	"github.com/adantop/golang-bootcamp-2020/service"
 	"github.com/docopt/docopt-go"
 )
 
+const usage = `Pokedex
+
+Usage:
+  pokedex <source> [--name=<NAME>|--id=<ID>]
+  pokedex -h | --help
+
+Options:
+  -n NAME --name=NAME   The name of the pokemon
+  -i ID --id=ID         The id of the pokemon
+  -h --help             Show this screen.`
+
 func main() {
 	var (
-		opts       = parseOpts()
-		srcType, _ = opts.String("<SourceType>")
-		svc, err   = service.New(srcType)
+		p        domain.Pokemon
+		opts     = parseOpts()
+		svc, err = service.New(opts["source"])
 	)
 
 	if err != nil {
@@ -20,29 +33,43 @@ func main() {
 	}
 	defer svc.DS.Close()
 
-	name, _ := opts.String("<PokemonName>")
-	pokemon, err := svc.DS.GetPokemonByName(name)
+	if opts["filter"] == "name" {
+		p, err = svc.DS.GetPokemonByName(opts["value"])
+	} else {
+		id, err := strconv.Atoi(opts["value"])
+		if err != nil {
+			log.Panicf("ID provided is not a number %s\n", opts["value"])
+		}
+		p, err = svc.DS.GetPokemonByID(id)
+	}
 
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	fmt.Println(p.ExtendedDescription())
+}
+
+func parseOpts() map[string]string {
+	opts := map[string]string{}
+
+	args, err := docopt.ParseDoc(usage)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(pokemon.ExtendedDescription())
-}
+	if opts["source"], err = args.String("<source>"); err != nil {
+		log.Fatalln("Unable to obtain resource")
+	}
 
-func parseOpts() docopt.Opts {
-	usage := `Pokedex
-
-Usage:
-  pokedex <SourceType> <PokemonName>
-  pokedex -h | --help
-
-Options:
-  -h --help     Show this screen.`
-
-	opts, err := docopt.ParseDoc(usage)
-	if err != nil {
-		log.Fatalln(err)
+	if name, _ := args.String("--name"); name != "" {
+		opts["filter"] = "name"
+		opts["value"] = name
+	} else if id, _ := args.String("--id"); id != "" {
+		opts["filter"] = "id"
+		opts["value"] = id
+	} else {
+		log.Fatalln("Either pokemon name or ID is required")
 	}
 
 	return opts

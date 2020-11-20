@@ -8,7 +8,7 @@ import (
 
 const (
 	queryPokemonByName = "SELECT * FROM pokemon WHERE name = $1"
-	queryPokemonByID   = "SELECT * FROM pokemon WHERE id = $1"
+	queryPokemonByID   = "SELECT * FROM pokemon WHERE number = $1"
 	selectAllPokemon   = "SELECT * FROM pokemon"
 )
 

@@ -10,9 +10,7 @@ Refer to `db/README.md` to find out how to initialize database
 Pokedex
 
 Usage:
-  go run . csv <csvfile> <PokemonName>
-  go run . sqlite3 <dbfile> <PokemonName>
-  go run . postgres <PokemonName>
+  go run . [csv|sqlite3|postgresql] <PokemonName>
   go run . -h | --help
 
 Options:
