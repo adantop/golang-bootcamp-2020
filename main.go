@@ -4,51 +4,46 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/adantop/golang-bootcamp-2020/db"
-	"github.com/adantop/golang-bootcamp-2020/fs"
-	"github.com/adantop/golang-bootcamp-2020/pokemon"
+	"github.com/adantop/golang-bootcamp-2020/service"
 	"github.com/docopt/docopt-go"
 )
 
 func main() {
-	usage := `Pokedex
+	var (
+		opts       = parseOpts()
+		srcType, _ = opts.String("<SourceType>")
+		svc, err   = service.New(srcType)
+	)
 
-Usage:
-  pokedex csv <csvfile> <PokemonName>
-  pokedex sqlite3 <dbfile> <PokemonName>
-  pokedex postgres <PokemonName>
-  pokedex -h | --help
-
-Options:
-  -h --help     Show this screen.`
-
-	args, _ := docopt.ParseDoc(usage)
-
-	var ds *pokemon.DataSource
-
-	switch {
-	case args["csv"]:
-		ds = &fs.DS
-		csvfile, _ := args.String("<csvfile>")
-		fs.UseCSV(csvfile)
-	case args["postgres"]:
-		ds = &db.DS
-		db.UsePostgreSQL()
-	case args["sqlite"]:
-		fallthrough
-	default:
-		ds = &db.DS
-		dbfile, _ := args.String("<dbfile>")
-		db.UseSQLite3(dbfile)
+	if err != nil {
+		log.Fatalln(err)
 	}
-	defer (*ds).Close()
+	defer svc.DS.Close()
 
-	name, _ := args.String("<PokemonName>")
-	pokemon, err := (*ds).GetPokemonByName(name)
+	name, _ := opts.String("<PokemonName>")
+	pokemon, err := svc.DS.GetPokemonByName(name)
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(pokemon.Describe())
+	fmt.Println(pokemon.ExtendedDescription())
+}
+
+func parseOpts() docopt.Opts {
+	usage := `Pokedex
+
+Usage:
+  pokedex <SourceType> <PokemonName>
+  pokedex -h | --help
+
+Options:
+  -h --help     Show this screen.`
+
+	opts, err := docopt.ParseDoc(usage)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return opts
 }
