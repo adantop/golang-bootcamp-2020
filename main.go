@@ -36,11 +36,11 @@ func main() {
 	if opts["filter"] == "name" {
 		p, err = svc.DS.GetPokemonByName(opts["value"])
 	} else {
-		id, err := strconv.Atoi(opts["value"])
+		number, err := strconv.Atoi(opts["value"])
 		if err != nil {
 			log.Panicf("ID provided is not a number %s\n", opts["value"])
 		}
-		p, err = svc.DS.GetPokemonByID(id)
+		p, err = svc.DS.GetPokemonByID(number)
 	}
 
 	if err != nil {
@@ -65,9 +65,9 @@ func parseOpts() map[string]string {
 	if name, _ := args.String("--name"); name != "" {
 		opts["filter"] = "name"
 		opts["value"] = name
-	} else if id, _ := args.String("--id"); id != "" {
-		opts["filter"] = "id"
-		opts["value"] = id
+	} else if number, _ := args.String("--number"); number != "" {
+		opts["filter"] = "number"
+		opts["value"] = number
 	} else {
 		log.Fatalln("Either pokemon name or ID is required")
 	}
